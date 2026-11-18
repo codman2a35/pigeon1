@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adana Damı - Taklacı Güvercinler | TikTok Live</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        .glass {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+        }
+        .glass-gold {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(15, 23, 42, 0.85));
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(251, 191, 36, 0.55);
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.35);
+        }
+        @keyframes slideDownFade {
+            0% { opacity: 0; transform: translate(-50%, -25px) scale(0.92); }
+            12% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+            88% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -15px) scale(0.95); }
+        }
+        .banner-animate {
+            animation: slideDownFade 4.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .btn-press {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-press:hover {
+            transform: translateY(-2px);
+        }
+        .btn-press:active {
+            transform: translateY(1px) scale(0.97);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ana Oyun Alanı -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Sol Üst: Canlı Yayın Skorbord & Bağlantı Durumu -->
+    <div id="hud-top-left" class="fixed top-4 left-4 z-20 flex flex-col gap-2.5 max-w-xs sm:max-w-sm">
+        <div class="glass rounded-2xl px-4 py-3 text-white flex items-center justify-between gap-4">
+            <div class="flex items-center gap-2.5">
+                <span id="ws-dot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <div>
+                    <div class="text-xs font-bold tracking-wider uppercase text-amber-300">Adana Damı Live</div>
+                    <div id="ws-status" class="text-[11px] text-slate-300">TikFinity Bekleniyor (ws:21213)</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <button id="btn-sound" onclick="toggleAudio()" title="Sesi Aç/Kapat" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition">
+                    <svg id="icon-sound-on" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                    <svg id="icon-sound-off" class="w-4 h-4 hidden text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+                </button>
+                <button onclick="openSettings()" title="TikFinity Ayarları" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Takla & Hediye Sayaçları -->
+        <div class="glass rounded-2xl px-4 py-2.5 text-white grid grid-cols-3 gap-2 text-center">
+            <div class="bg-white/5 rounded-xl py-1.5 px-2">
+                <div class="text-[10px] text-sky-300 font-semibold">Yerli Gök</div>
+                <div id="stat-common" class="text-base font-black">0</div>
+            </div>
+            <div class="bg-amber-500/15 rounded-xl py-1.5 px-2 border border-amber-500/30">
+                <div class="text-[10px] text-amber-300 font-semibold">Paçalı Mardin</div>
+                <div id="stat-rare" class="text-base font-black text-amber-300">0</div>
+            </div>
+            <div class="bg-purple-500/15 rounded-xl py-1.5 px-2 border border-purple-400/30">
+                <div class="text-[10px] text-purple-300 font-semibold">Mühürlü Şeref</div>
+                <div id="stat-legendary" class="text-base font-black text-purple-200">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Üst Orta: Hediye & Takla Bildirim Banner'ı -->
+    <div id="banner-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-30 pointer-events-none w-[92%] max-w-md"></div>
+
+    <!-- Sağ Alt: Yayıncı Kontrol ve Test Paneli -->
+    <div id="control-wrapper" class="fixed bottom-4 right-4 z-20 flex flex-col items-end gap-2">
+        <!-- Gizle / Göster Butonu -->
+        <button id="toggle-ui-btn" onclick="toggleStreamerMode()" class="glass text-xs text-slate-200 hover:text-white px-3.5 py-2 rounded-full font-semibold flex items-center gap-1.5 shadow-lg">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            <span id="toggle-ui-text">Canlı Yayın Modu (Butonları Gizle)</span>
+        </button>
+
+        <!-- Test Butonları -->
+        <div id="test-buttons" class="glass rounded-2xl p-3 flex flex-wrap justify-end gap-2">
+            <button onclick="simulateGift(1)" class="btn-press bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white px-3.5 py-2.5 rounded-xl text-xs font-bold shadow-md flex items-center gap-2 border border-sky-400/30">
+                <span class="bg-white/20 px-1.5 py-0.5 rounded text-[11px]">1x</span>
+                <div class="text-left">
+                    <div>Yerli Gök</div>
+                    <div class="text-[10px] text-sky-200 font-normal">1 Takla</div>
+                </div>
+            </button>
+
+            <button onclick="simulateGift(5)" class="btn-press bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-500 hover:to-orange-600 text-white px-3.5 py-2.5 rounded-xl text-xs font-bold shadow-md flex items-center gap-2 border border-amber-300/40">
+                <span class="bg-white/20 px-1.5 py-0.5 rounded text-[11px]">5x</span>
+                <div class="text-left">
+                    <div>Paçalı Mardin</div>
+                    <div class="text-[10px] text-amber-200 font-normal">Fişek + 3 Takla</div>
+                </div>
+            </button>
+
+            <button onclick="simulateGift(10)" class="btn-press bg-gradient-to-r from-purple-700 via-fuchsia-700 to-amber-600 hover:brightness-110 text-white px-3.5 py-2.5 rounded-xl text-xs font-bold shadow-lg flex items-center gap-2 border border-yellow-300/60">
+                <span class="bg-yellow-400 text-slate-950 px-1.5 py-0.5 rounded text-[11px] font-black">10x</span>
+                <div class="text-left">
+                    <div>Mühürlü Şeref</div>
+                    <div class="text-[10px] text-yellow-200 font-normal">Efsane 5 Takla</div>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- TikFinity / WebSocket Ayar Modalı -->
+    <div id="settings-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+        <div class="glass rounded-3xl max-w-md w-full p-6 text-white border border-white/20">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-amber-300">TikFinity & Canlı Yayın Bağlantısı</h2>
+                <button onclick="closeSettings()" class="text-slate-400 hover:text-white p-1">✕</button>
+            </div>
+            <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+                TikFinity masaüstü uygulaması açıkken otomatik olarak <b>ws://localhost:21213</b> üzerinden bağlanır. Özel bir port veya sunucu adresi kullanıyorsanız aşağıdan güncelleyebilirsiniz.
+            </p>
+            <div class="space-y-3 mb-5">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">WebSocket Adresi</label>
+                    <input id="ws-url-input" type="text" value="ws://localhost:21213" class="w-full bg-slate-900/90 border border-white/15 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-amber-400">
+                </div>
+                <div class="bg-slate-900/60 rounded-xl p-3 text-[11px] text-slate-300 space-y-1 border border-white/10">
+                    <div class="font-bold text-amber-300">URL Parametresi ile Tetikleme:</div>
+                    <div>• Tekli test: <code class="text-sky-300">?gift=1</code>, <code class="text-amber-300">?gift=5</code>, <code class="text-purple-300">?gift=10</code></div>
+                    <div>• Yayıncı modu (butonsuz): <code class="text-emerald-300">?clean=1</code></div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeSettings()" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold">Kapat</button>
+                <button onclick="reconnectWS()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold">Kaydet ve Bağlan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ADANA DAMI - TAKLACI GÜVERCİNLER (TİKTOK LIVE EDITION)
+         * Yüksek çözünürlüklü 60FPS HTML5 Canvas motoru + Prosedürel Web Audio ses sentezi
+         */
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let W = window.innerWidth;
+        let H = window.innerHeight;
+        let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        function resizeCanvas() {
+            W = window.innerWidth;
+            H = window.innerHeight;
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = W * dpr;
+            canvas.height = H * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            initEnvironment();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // ==========================================
+        // 1. SES MOTORU (WEB AUDIO API)
+        // ==========================================
+        let audioCtx = null;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function toggleAudio() {
+            initAudio();
+            isMuted = !isMuted;
+            document.getElementById('icon-sound-on').classList.toggle('hidden', isMuted);
+            document.getElementById('icon-sound-off').classList.toggle('hidden', !isMuted);
+        }
+
+        // Gerçekçi Kanat Çırpma / Fişekleme Sesi
+        function playWingFlap(intensity = 1) {
+            if (isMuted) return;
+            initAudio();
+            try {
+                const now = audioCtx.currentTime;
+                const duration = 0.14;
+                const bufferSize = audioCtx.sampleRate * duration;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    const env = Math.sin((i / bufferSize) * Math.PI);
+                    data[i] = (Math.random() * 2 - 1) * env * env;
+                }
+
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.setValueAtTime(260 + intensity * 120, now);
+                filter.frequency.exponentialRampToValueAtTime(110, now + duration);
+                filter.Q.value = 1.4;
+
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.01, now);
+                gain.gain.linearRampToValueAtTime(0.28 * intensity, now + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                noise.start(now);
+            } catch (e) {}
+        }
+
+        // Güvercin Guguklama Sesi
+        function playCoo() {
+            if (isMuted) return;
+            initAudio();
+            try {
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(340, now);
+                osc.frequency.linearRampToValueAtTime(390, now + 0.12);
+                osc.frequency.linearRampToValueAtTime(310, now + 0.35);
+
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.07, now + 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.42);
+            } catch (e) {}
+        }
+
+        // Nadir Kuş Kutlama Melodisi
+        function playCelebration(tier) {
+            if (isMuted) return;
+            initAudio();
+            try {
+                const now = audioCtx.currentTime;
+                const notes = tier >= 10 ? [523.25, 659.25, 783.99, 1046.5] : [440, 554.37, 659.25];
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+
+                    gain.gain.setValueAtTime(0.001, now + idx * 0.09);
+                    gain.gain.linearRampToValueAtTime(0.12, now + idx * 0.09 + 0.03);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.45);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.09);
+                    osc.stop(now + idx * 0.09 + 0.48);
+                });
+            } catch (e) {}
+        }
+
+        // ==========================================
+        // 2. GÜVERCİN IRKLARI VE KONFİGÜRASYONU
+        // ==========================================
+        const BREEDS = {
+            common: {
+                id: 'common',
+                name: 'Yerli Gök (Adana Mavisi)',
+                subtitle: 'Klasik Adana Filo & Takla Güvercini',
+                bodyPrimary: '#64748b',
+                bodySecondary: '#94a3b8',
+                wingCoverts: '#475569',
+                wingBars: '#0f172a',
+                neckBase: '#334155',
+                iridescence1: 'rgba(16, 185, 129, 0.55)',
+                iridescence2: 'rgba(168, 85, 247, 0.45)',
+                tailColor: '#1e293b',
+                tailBand: '#cbd5e1',
+                hasCrest: false,
+                pacaLevel: 0, // Paçasız
+                glowColor: null,
+                somersaults: 1,
+                peakHeightRatio: 0.45,
+                duration: 3.4,
+                scale: 1.0
+            },
+            rare: {
+                id: 'rare',
+                name: 'Paçalı Mardin Taklacısı (Nuhudi)',
+                subtitle: 'Bol Paçalı & Tepeli Safkan Oyun Kuşu',
+                bodyPrimary: '#c27849',
+                bodySecondary: '#eab686',
+                wingCoverts: '#9a552a',
+                wingBars: '#5c2d11',
+                neckBase: '#7c3f1d',
+                iridescence1: 'rgba(251, 191, 36, 0.5)',
+                iridescence2: 'rgba(244, 63, 94, 0.35)',
+                tailColor: '#fffbeb',
+                tailBand: '#9a552a',
+                hasCrest: true,
+                pacaLevel: 1, // Orta-bol beyaz paça
+                glowColor: 'rgba(251, 191, 36, 0.45)',
+                somersaults: 3,
+                peakHeightRatio: 0.65,
+                duration: 4.5,
+                scale: 1.15
+            },
+            legendary: {
+                id: 'legendary',
+                name: 'Mühürlü Şeref (Karakuş Osmanlı)',
+                subtitle: 'Nadir Koleksiyonluk Altın Tepeli Efsane',
+                bodyPrimary: '#111827',
+                bodySecondary: '#1f2937',
+                wingCoverts: '#090d16',
+                wingBars: '#ffffff', // Beyaz mühürlü kanat şeritleri
+                neckBase: '#030712',
+                iridescence1: 'rgba(16, 185, 129, 0.75)',
+                iridescence2: 'rgba(245, 158, 11, 0.7)',
+                tailColor: '#ffffff',
+                tailBand: '#111827',
+                hasCrest: true,
+                pacaLevel: 2, // Çok yoğun gösterişli paça
+                glowColor: 'rgba(250, 204, 21, 0.85)',
+                somersaults: 5,
+                peakHeightRatio: 0.80,
+                duration: 5.6,
+                scale: 1.28
+            }
+        };
+
+        // ==========================================
+        // 3. SAHNE ELEMENTLERİ (ADANA DABI & SİLÜET)
+        // ==========================================
+        let clouds = [];
+        let dustMotes = [];
+        let grains = [];
+        let cityBuildings = [];
+        let roofWeeds = [];
+        let particles = [];
+        let shockwaves = [];
+
+        function initEnvironment() {
+            // Bulutlar
+            clouds = [];
+            for (let i = 0; i < 6; i++) {
+                clouds.push({
+                    x: Math.random() * W,
+                    y: H * (0.08 + Math.random() * 0.25),
+                    scale: 0.6 + Math.random() * 0.9,
+                    speed: 6 + Math.random() * 10,
+                    opacity: 0.22 + Math.random() * 0.25
+                });
+            }
+
+            // Havada süzülen altın toz zerrecikleri
+            dustMotes = [];
+            for (let i = 0; i < 45; i++) {
+                dustMotes.push({
+                    x: Math.random() * W,
+                    y: Math.random() * H * 0.85,
+                    r: 1 + Math.random() * 2.2,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: -4 - Math.random() * 10,
+                    alpha: 0.2 + Math.random() * 0.6
+                });
+            }
+
+            // Damdaki yem taneleri (buğday / darı)
+            const roofTopY = H * 0.74;
+            grains = [];
+            for (let i = 0; i < 28; i++) {
+                grains.push({
+                    x: W * (0.28 + Math.random() * 0.42),
+                    y: roofTopY + 14 + Math.random() * 35,
+                    angle: Math.random() * Math.PI
+                });
+            }
+
+            // Uzaktaki Adana apartman silüetleri ve güneş enerjileri
+            cityBuildings = [];
+            let bx = -20;
+            while (bx < W + 60) {
+                const bw = 55 + Math.random() * 85;
+                const bh = 60 + Math.random() * 110;
+                cityBuildings.push({
+                    x: bx,
+                    w: bw,
+                    h: bh,
+                    hasSolar: Math.random() > 0.35,
+                    hasAntenna: Math.random() > 0.45,
+                    windows: Math.floor(Math.random() * 4) + 2
+                });
+                bx += bw - 8;
+            }
+
+            // Kiremit aralarından çıkan rüzgarda sallanan otlar
+            roofWeeds = [];
+            for (let i = 0; i < 14; i++) {
+                roofWeeds.push({
+                    x: W * (0.04 + Math.random() * 0.92),
+                    y: roofTopY + 6 + Math.random() * 12,
+                    height: 10 + Math.random() * 16,
+                    phase: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        // ==========================================
+        // 4. GÜVERCİN VARLIĞI VE UÇUŞ FİZİĞİ
+        // ==========================================
+        class Pigeon {
+            constructor(id, homeX, homeY, breedKey, isMain = true) {
+                this.id = id;
+                this.homeX = homeX;
+                this.homeY = homeY;
+                this.x = homeX;
+                this.y = homeY;
+                this.breed = BREEDS[breedKey];
+                this.defaultBreed = BREEDS[breedKey];
+                this.isMain = isMain;
+
+                this.facing = 1; // 1: sağa, -1: sola
+                this.state = 'idle'; // 'idle' | 'performing'
+                this.animTime = 0;
+                this.wingPhase = Math.random() * Math.PI * 2;
+                this.rotation = 0;
+                this.scaleMult = 1;
+
+                // Idle davranış değişkenleri
+                this.idleAction = 'stand'; // 'stand' | 'peck' | 'coo' | 'look'
+                this.idleTimer = 1 + Math.random() * 3;
+                this.neckPuff = 0;
+                this.headPitch = 0;
+                this.blinkTimer = 2 + Math.random() * 4;
+                this.isBlinking = false;
+                this.lastFlapCycle = 0;
+            }
+
+            triggerPerformance(breedKey, donorName = 'İzleyici') {
+                this.breed = BREEDS[breedKey];
+                this.state = 'performing';
+                this.animTime = 0;
+                this.rotation = 0;
+                this.neckPuff = 0;
+                this.headPitch = 0;
+                this.lastFlapCycle = 0;
+
+                // Kalkış toz & tüy partikülleri
+                spawnFeathers(this.x, this.y - 10, 14, this.breed);
+                playWingFlap(1.2);
+            }
+
+            update(dt) {
+                const roofBaseY = H * 0.74;
+                this.homeY = roofBaseY + (this.id === 0 ? 18 : (this.id === 1 ? 28 : 22));
+                this.homeX = W * (this.id === 0 ? 0.52 : (this.id === 1 ? 0.42 : 0.63));
+
+                // Göz kırpma
+                this.blinkTimer -= dt;
+                if (this.blinkTimer <= 0) {
+                    this.isBlinking = !this.isBlinking;
+                    this.blinkTimer = this.isBlinking ? 0.14 : (2.5 + Math.random() * 3.5);
+                }
+
+                if (this.state === 'idle') {
+                    this.x += (this.homeX - this.x) * Math.min(1, dt * 6);
+                    this.y += (this.homeY - this.y) * Math.min(1, dt * 6);
+                    this.rotation = 0;
+                    this.scaleMult = 1;
+                    this.wingPhase = 0;
+
+                    this.idleTimer -= dt;
+                    if (this.idleTimer <= 0) {
+                        const r = Math.random();
+                        if (r < 0.35) {
+                            this.idleAction = 'peck';
+                            this.idleTimer = 1.1;
+                        } else if (r < 0.58) {
+                            this.idleAction = 'coo';
+                            this.idleTimer = 1.6;
+                            if (this.isMain && Math.random() < 0.35) playCoo();
+                        } else if (r < 0.8) {
+                            this.idleAction = 'look';
+                            this.facing = Math.random() > 0.5 ? 1 : -1;
+                            this.idleTimer = 1.8;
+                        } else {
+                            this.idleAction = 'stand';
+                            this.idleTimer = 2.2;
+                        }
+                    }
+
+                    if (this.idleAction === 'peck') {
+                        this.headPitch = Math.abs(Math.sin(this.idleTimer * Math.PI * 3)) * 0.65;
+                        this.neckPuff = 0.1;
+                    } else if (this.idleAction === 'coo') {
+                        this.neckPuff = 0.65 + Math.sin(this.idleTimer * 10) * 0.2;
+                        this.headPitch = -0.15;
+                    } else {
+                        this.headPitch *= 0.85;
+                        this.neckPuff *= 0.85;
+                    }
+                    return;
+                }
+
+                // PERFORMANS (UÇUŞ + FİŞEK + TAKLA + SÜZÜLME)
+                const dur = this.breed.duration;
+                this.animTime += dt;
+                const t = Math.min(1, this.animTime / dur);
+
+                const peakY = H * (1 - this.breed.peakHeightRatio);
+                const startX = this.homeX;
+                const startY = this.homeY;
+
+                // Faz 1: Kalkış ve Fişekleme (0.0 -> 0.34)
+                if (t < 0.34) {
+                    const p = t / 0.34;
+                    const easeOut = 1 - Math.pow(1 - p, 2.4);
+                    this.facing = -1;
+                    this.x = startX - Math.sin(p * Math.PI * 0.65) * (W * 0.18);
+                    this.y = startY + (peakY - startY) * easeOut;
+                    this.rotation = -0.45 * Math.sin(p * Math.PI);
+                    this.scaleMult = 1 + 0.22 * easeOut;
+                    this.wingPhase += dt * 36; // Çok hızlı kanat çırpma
+
+                    const cycle = Math.floor(this.wingPhase / (Math.PI * 2));
+                    if (cycle > this.lastFlapCycle) {
+                        this.lastFlapCycle = cycle;
+                        playWingFlap(this.breed.id === 'legendary' ? 1.3 : 1.0);
+                        if (this.breed.id !== 'common') {
+                            spawnFeathers(this.x, this.y, 2, this.breed);
+                        }
+                    }
+                }
+                // Faz 2: Zirvede Takla / Akrobasi Şovu (0.34 -> 0.72)
+                else if (t < 0.72) {
+                    const p = (t - 0.34) / 0.38;
+                    const flips = this.breed.somersaults;
+                    const smoothP = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+
+                    this.x = (startX - W * 0.16) + Math.sin(p * Math.PI * 2) * 35;
+                    this.y = peakY - Math.sin(p * Math.PI) * 38;
+                    this.rotation = -smoothP * flips * Math.PI * 2;
+                    this.scaleMult = 1.22 + Math.sin(p * Math.PI) * 0.14;
+                    this.wingPhase += dt * 44;
+
+                    // Her takla turunda şok dalgası ve tüy patlaması
+                    const currentFlip = Math.floor(smoothP * flips);
+                    if (currentFlip > this.lastFlapCycle - 10) {
+                        this.lastFlapCycle = currentFlip + 10;
+                        playWingFlap(1.35);
+                        spawnFeathers(this.x, this.y, this.breed.id === 'legendary' ? 12 : 7, this.breed);
+                        if (this.breed.id !== 'common') {
+                            shockwaves.push({
+                                x: this.x,
+                                y: this.y,
+                                r: 10,
+                                maxR: this.breed.id === 'legendary' ? 110 : 75,
+                                alpha: 0.85,
+                                color: this.breed.id === 'legendary' ? '#fde047' : '#fed7aa'
+                            });
+                        }
+                    }
+                }
+                // Faz 3: Zarif Süzülme ve Dama İniş (0.72 -> 1.0)
+                else {
+                    const p = (t - 0.72) / 0.28;
+                    const easeInOut = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+                    const glideStartX = startX - W * 0.16;
+
+                    this.facing = 1;
+                    this.x = glideStartX + (startX - glideStartX) * easeInOut + Math.sin(p * Math.PI) * 55;
+                    this.y = peakY + (startY - peakY) * easeInOut;
+                    this.rotation = (1 - p) * 0.28;
+                    this.scaleMult = 1.22 - 0.22 * easeInOut;
+                    // İnişe yakın frenleme kanat çırpışı
+                    this.wingPhase += dt * (p > 0.75 ? 28 : 10);
+                }
+
+                if (t >= 1) {
+                    this.state = 'idle';
+                    this.breed = this.defaultBreed;
+                    this.rotation = 0;
+                    this.scaleMult = 1;
+                    spawnFeathers(this.x, this.y - 6, 6, this.defaultBreed);
+                }
+            }
+
+            draw(ctx) {
+                const b = this.breed;
+                const s = b.scale * this.scaleMult;
+
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.scale(this.facing * s, s);
+
+                // Nadir kuşlar için ilahi hale / aura
+                if (b.glowColor && this.state === 'performing') {
+                    const aura = ctx.createRadialGradient(0, -14, 4, 0, -14, 58);
+                    aura.addColorStop(0, b.glowColor);
+                    aura.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = aura;
+                    ctx.beginPath();
+                    ctx.arc(0, -14, 58, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Yerdeyken yumuşak gölge
+                if (this.state === 'idle') {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 2, 22, 5.5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                const isFlying = this.state === 'performing';
+                const flapAngle = isFlying ? Math.sin(this.wingPhase) : 0;
+
+                // 1. ARKA KANAT (Uçuşta görünür)
+                if (isFlying) {
+                    ctx.save();
+                    ctx.translate(-2, -18);
+                    ctx.rotate(-0.45 - flapAngle * 0.85);
+                    this.drawWing(ctx, b, true);
+                    ctx.restore();
+                }
+
+                // 2. AYAKLAR VE PAÇA TÜYLERİ (Mardin & Şeref için gösterişli beyaz paça)
+                ctx.save();
+                if (isFlying) {
+                    ctx.translate(-8, -6);
+                    ctx.rotate(0.6);
+                }
+                // Pembe-kırmızı kuş ayakları
+                ctx.strokeStyle = '#e11d48';
+                ctx.lineWidth = 2.2;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(-3, -8); ctx.lineTo(-4, 1); ctx.lineTo(2, 1);
+                ctx.moveTo(4, -8); ctx.lineTo(4, 1); ctx.lineTo(9, 1);
+                ctx.stroke();
+
+                // Paça Tüyleri ("Bol Paça")
+                if (b.pacaLevel > 0) {
+                    const pacaSize = b.pacaLevel === 2 ? 1.45 : 1.0;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.lineWidth = 1;
+                    for (let side of [-4, 4]) {
+                        ctx.beginPath();
+                        ctx.ellipse(side - 3 * pacaSize, -1, 10 * pacaSize, 4.5 * pacaSize, -0.35, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.ellipse(side + 4 * pacaSize, 0, 8 * pacaSize, 3.8 * pacaSize, 0.25, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+                ctx.restore();
+
+                // 3. KUYRUK TÜYLERİ
+                ctx.save();
+                ctx.translate(-18, -14);
+                ctx.rotate(isFlying ? 0.12 : 0.22);
+                // Kuyruk yelpazesi
+                ctx.fillStyle = b.tailColor;
+                ctx.beginPath();
+                ctx.moveTo(0, -4);
+                ctx.lineTo(-26, -7);
+                ctx.lineTo(-28, 2);
+                ctx.lineTo(-24, 6);
+                ctx.lineTo(0, 4);
+                ctx.closePath();
+                ctx.fill();
+                // Kuyruk ucu şeridi
+                ctx.fillStyle = b.tailBand;
+                ctx.beginPath();
+                ctx.moveTo(-20, -6);
+                ctx.lineTo(-26, -7);
+                ctx.lineTo(-28, 2);
+                ctx.lineTo(-21, 5);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+
+                // 4. GÖVDE (Anatomik Göğüs ve Sırt Eğrisi)
+                const bodyGrad = ctx.createLinearGradient(0, -28, 0, -4);
+                bodyGrad.addColorStop(0, b.bodyPrimary);
+                bodyGrad.addColorStop(1, b.bodySecondary);
+                ctx.fillStyle = bodyGrad;
+                ctx.beginPath();
+                ctx.moveTo(-20, -14);
+                ctx.bezierCurveTo(-15, -26, 8, -28, 17, -18);
+                ctx.bezierCurveTo(22, -10, 14, -3, -4, -4);
+                ctx.bezierCurveTo(-14, -4, -20, -9, -20, -14);
+                ctx.fill();
+
+                // 5. BOYUN VE YANARDÖNER TÜYLER (Iridescent Sheen)
+                ctx.save();
+                ctx.translate(11, -18);
+                ctx.rotate(this.headPitch);
+
+                const puff = this.neckPuff * 4;
+                ctx.fillStyle = b.neckBase;
+                ctx.beginPath();
+                ctx.ellipse(1, -6, 9.5 + puff, 12, -0.15, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Metalik yeşil/mor/altın yanardöner parıltı
+                const iridGrad = ctx.createLinearGradient(-6, -15, 8, 2);
+                iridGrad.addColorStop(0, b.iridescence1);
+                iridGrad.addColorStop(0.5, b.iridescence2);
+                iridGrad.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = iridGrad;
+                ctx.beginPath();
+                ctx.ellipse(1, -6, 8.5 + puff, 10.5, -0.15, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 6. KAFA, TEPE (CREST), GÖZ VE GAGA
+                // Kafa
+                ctx.fillStyle = b.neckBase;
+                ctx.beginPath();
+                ctx.arc(4, -17, 7.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Arka Tepe ("Güllü / Tepeli" ırklar için)
+                if (b.hasCrest) {
+                    ctx.fillStyle = b.id === 'legendary' ? '#facc15' : '#fffbeb';
+                    ctx.beginPath();
+                    ctx.moveTo(-1, -22);
+                    ctx.quadraticCurveTo(-8, -28, -9, -18);
+                    ctx.quadraticCurveTo(-5, -17, -1, -19);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                // Gaga ve Beyaz Burun Eti (Cere)
+                ctx.fillStyle = b.id === 'common' ? '#1e293b' : '#f8fafc';
+                ctx.beginPath();
+                ctx.moveTo(10, -17.5);
+                ctx.lineTo(18.5, -15.5);
+                ctx.lineTo(10.5, -14);
+                ctx.closePath();
+                ctx.fill();
+
+                // Burun eti
+                ctx.fillStyle = '#f1f5f9';
+                ctx.beginPath();
+                ctx.ellipse(11, -17.2, 2.2, 1.4, 0.2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Göz (Kehribar / İnci Göz)
+                if (!this.isBlinking) {
+                    ctx.fillStyle = b.id === 'legendary' ? '#fde047' : '#fb923c';
+                    ctx.beginPath();
+                    ctx.arc(6.2, -17.5, 2.3, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#090d16';
+                    ctx.beginPath();
+                    ctx.arc(6.5, -17.5, 1.2, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(6.9, -18.0, 0.45, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    ctx.strokeStyle = '#94a3b8';
+                    ctx.lineWidth = 1.2;
+                    ctx.beginPath();
+                    ctx.moveTo(4.2, -17.5);
+                    ctx.lineTo(8.2, -17.5);
+                    ctx.stroke();
+                }
+                ctx.restore();
+
+                // 7. ÖN KANAT (Kapalı veya Çırpılan Detaylı Kanat)
+                ctx.save();
+                ctx.translate(2, -17);
+                if (isFlying) {
+                    ctx.rotate(0.2 + flapAngle * 0.95);
+                    this.drawWing(ctx, b, false);
+                } else {
+                    // Damda dururken katlı gerçekçi kanat
+                    ctx.fillStyle = b.wingCoverts;
+                    ctx.beginPath();
+                    ctx.moveTo(4, -3);
+                    ctx.bezierCurveTo(-6, -6, -22, 0, -28, 6);
+                    ctx.bezierCurveTo(-18, 9, -2, 7, 6, 3);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Kanat üzerindeki karakteristik çift şerit ("Mühür / Kalem")
+                    ctx.strokeStyle = b.wingBars;
+                    ctx.lineWidth = 2.2;
+                    ctx.beginPath();
+                    ctx.moveTo(-10, -2); ctx.lineTo(-14, 6);
+                    ctx.moveTo(-16, 0); ctx.lineTo(-20, 6.5);
+                    ctx.stroke();
+                }
+                ctx.restore();
+
+                ctx.restore();
+            }
+
+            // Uçuş sırasındaki çok katmanlı primer/sekonder uçuş tüyleri
+            drawWing(ctx, b, isBackWing) {
+                ctx.save();
+                if (isBackWing) ctx.globalAlpha = 0.78;
+
+                // Primer telek tüyleri
+                ctx.fillStyle = b.bodySecondary;
+                for (let i = 0; i < 6; i++) {
+                    ctx.save();
+                    ctx.rotate(-0.15 - i * 0.14);
+                    ctx.beginPath();
+                    ctx.ellipse(-18, -4, 17, 3.6, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // Kanat kapağı (Coverts)
+                ctx.fillStyle = b.wingCoverts;
+                ctx.beginPath();
+                ctx.ellipse(-11, -5, 16, 8, -0.35, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Kanat şeritleri
+                ctx.strokeStyle = b.wingBars;
+                ctx.lineWidth = 2.2;
+                ctx.beginPath();
+                ctx.moveTo(-6, -10);
+                ctx.quadraticCurveTo(-14, -6, -20, 1);
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        }
+
+        // Damdaki güvercin sürüsü (1 ana oyuncu kuş + 2 eşlikçi kuş)
+        const pigeons = [
+            new Pigeon(0, 0, 0, 'common', true),
+            new Pigeon(1, 0, 0, 'rare', false),
+            new Pigeon(2, 0, 0, 'common', false)
+        ];
+
+        // ==========================================
+        // 5. TÜY PARTİKÜLLERİ VE EFEKTLER
+        // ==========================================
+        function spawnFeathers(x, y, count, breed) {
+            for (let i = 0; i < count; i++) {
+                const isGold = breed.id === 'legendary' && Math.random() > 0.45;
+                particles.push({
+                    x: x + (Math.random() - 0.5) * 24,
+                    y: y + (Math.random() - 0.5) * 24,
+                    vx: (Math.random() - 0.5) * 90,
+                    vy: -20 - Math.random() * 65,
+                    rot: Math.random() * Math.PI * 2,
+                    vRot: (Math.random() - 0.5) * 6,
+                    size: 4 + Math.random() * 5,
+                    color: isGold ? '#fde047' : (Math.random() > 0.4 ? '#ffffff' : breed.bodySecondary),
+                    life: 1.0,
+                    decay: 0.45 + Math.random() * 0.45
+                });
+            }
+        }
+
+        function updateAndDrawParticles(dt) {
+            // Şok dalgaları
+            for (let i = shockwaves.length - 1; i >= 0; i--) {
+                const sw = shockwaves[i];
+                sw.r += dt * 190;
+                sw.alpha -= dt * 1.4;
+                if (sw.alpha <= 0) {
+                    shockwaves.splice(i, 1);
+                    continue;
+                }
+                ctx.save();
+                ctx.strokeStyle = sw.color;
+                ctx.globalAlpha = Math.max(0, sw.alpha);
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Süzülen tüyler
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx * dt + Math.sin(p.life * 10) * 18 * dt;
+                p.y += p.vy * dt;
+                p.vy += 45 * dt; // Yavaş süzülme yerçekimi
+                p.vx *= 0.96;
+                p.rot += p.vRot * dt;
+                p.life -= p.decay * dt;
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rot);
+                ctx.globalAlpha = Math.max(0, p.life);
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, p.size, p.size * 0.38, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // ==========================================
+        // 6. ADANA DABI & ATMOSFER ÇİZİMİ
+        // ==========================================
+        function drawBackground(time) {
+            const roofTopY = H * 0.74;
+
+            // 1. Akdeniz Gün Batımı Gökyüzü Degradesi
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, roofTopY);
+            skyGrad.addColorStop(0, '#0f172a');
+            skyGrad.addColorStop(0.28, '#1e1b4b');
+            skyGrad.addColorStop(0.58, '#9a3412');
+            skyGrad.addColorStop(0.82, '#ea580c');
+            skyGrad.addColorStop(1, '#fde047');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            // 2. Batan Güneş & Volümetrik Işık Huzmeleri
+            const sunX = W * 0.24;
+            const sunY = roofTopY - H * 0.14;
+
+            const sunGlow = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, W * 0.45);
+            sunGlow.addColorStop(0, 'rgba(254, 249, 195, 0.95)');
+            sunGlow.addColorStop(0.15, 'rgba(253, 186, 116, 0.55)');
+            sunGlow.addColorStop(0.5, 'rgba(234, 88, 12, 0.15)');
+            sunGlow.addColorStop(1, 'rgba(234, 88, 12, 0)');
+            ctx.fillStyle = sunGlow;
+            ctx.fillRect(0, 0, W, roofTopY);
+
+            // Güneş diski
+            ctx.fillStyle = '#fef9c3';
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, Math.min(W, H) * 0.055, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 3. Sürüklenen Bulutlar
+            clouds.forEach(c => {
+                c.x += c.speed * 0.016;
+                if (c.x > W + 180) c.x = -180;
+                ctx.save();
+                ctx.translate(c.x, c.y);
+                ctx.scale(c.scale, c.scale);
+                ctx.fillStyle = `rgba(254, 215, 170, ${c.opacity})`;
+                ctx.beginPath();
+                ctx.arc(0, 0, 42, 0, Math.PI * 2);
+                ctx.arc(38, -8, 52, 0, Math.PI * 2);
+                ctx.arc(82, 2, 38, 0, Math.PI * 2);
+                ctx.arc(-35, 8, 30, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // 4. Uzaktaki Sabancı Merkez Camii Silüeti (6 Minareli Adana İkonu)
+            drawSabanciMosqueSilhouette(W * 0.72, roofTopY + 5);
+
+            // 5. Adana Apartman Silüetleri ve Güneş Enerjileri
+            cityBuildings.forEach(b => {
+                const by = roofTopY - b.h + 15;
+                ctx.fillStyle = '#1e1b2e';
+                ctx.fillRect(b.x, by, b.w, b.h);
+
+                // Güneş enerjisi su deposu silüeti
+                if (b.hasSolar) {
+                    ctx.fillStyle = '#2e294e';
+                    ctx.fillRect(b.x + 12, by - 14, 24, 10);
+                    ctx.strokeStyle = '#2e294e';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(b.x + 10, by); ctx.lineTo(b.x + 38, by - 10);
+                    ctx.stroke();
+                }
+
+                // TV Anteni
+                if (b.hasAntenna) {
+                    ctx.strokeStyle = '#1e1b2e';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(b.x + b.w - 14, by);
+                    ctx.lineTo(b.x + b.w - 14, by - 22);
+                    ctx.moveTo(b.x + b.w - 22, by - 18);
+                    ctx.lineTo(b.x + b.w - 6, by - 18);
+                    ctx.stroke();
+                }
+
+                // Sıcak apartman ışıkları
+                ctx.fillStyle = 'rgba(253, 224, 71, 0.25)';
+                for (let row = 0; row < 3; row++) {
+                    for (let col = 0; col < b.windows; col++) {
+                        if ((row + col + Math.floor(b.x)) % 3 === 0) {
+                            ctx.fillRect(b.x + 10 + col * 14, by + 12 + row * 18, 6, 9);
+                        }
+                    }
+                }
+            });
+
+            // 6. Havadaki Altın Toz Zerrecikleri
+            dustMotes.forEach(m => {
+                m.x += m.vx * 0.016;
+                m.y += m.vy * 0.016;
+                if (m.y < 0) m.y = roofTopY;
+                if (m.x < 0) m.x = W;
+                if (m.x > W) m.x = 0;
+
+                ctx.fillStyle = `rgba(254, 240, 138, ${m.alpha})`;
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // 7. ÖN PLAN: ADANA DAMI (KİREMİT ÇATI + KÜMES + SULUK + YEMLER)
+            drawAdanaRooftop(roofTopY, time);
+        }
+
+        function drawSabanciMosqueSilhouette(cx, baseY) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(30, 20, 40, 0.65)';
+
+            // Ana kubbe
+            ctx.beginPath();
+            ctx.arc(cx, baseY - 38, 36, Math.PI, 0);
+            ctx.fill();
+            ctx.fillRect(cx - 46, baseY - 38, 92, 38);
+
+            // 6 Minare
+            const minarets = [-72, -54, -36, 36, 54, 72];
+            minarets.forEach((offset, idx) => {
+                const mh = (idx === 1 || idx === 4) ? 105 : 88;
+                const mx = cx + offset;
+                ctx.fillRect(mx - 2.5, baseY - mh, 5, mh);
+                // Külah
+                ctx.beginPath();
+                ctx.moveTo(mx - 3.5, baseY - mh);
+                ctx.lineTo(mx, baseY - mh - 14);
+                ctx.lineTo(mx + 3.5, baseY - mh);
+                ctx.fill();
+            });
+            ctx.restore();
+        }
+
+        function drawAdanaRooftop(roofTopY, time) {
+            const roofHeight = H - roofTopY;
+
+            // Çatı ana tabanı (Sıcak terakota kiremit rengi)
+            const roofGrad = ctx.createLinearGradient(0, roofTopY, 0, H);
+            roofGrad.addColorStop(0, '#7c2d12');
+            roofGrad.addColorStop(0.35, '#9a3412');
+            roofGrad.addColorStop(1, '#431407');
+            ctx.fillStyle = roofGrad;
+            ctx.fillRect(0, roofTopY, W, roofHeight);
+
+            // Alaturka oluklu kiremit sıraları (Perspektifli katmanlar)
+            const rows = 7;
+            for (let r = 0; r < rows; r++) {
+                const ry = roofTopY + (r / rows) * roofHeight;
+                const rowH = roofHeight / rows;
+                const tileW = 28 + r * 4;
+
+                // Kiremit sırası gölgesi
+                ctx.fillStyle = 'rgba(28, 10, 4, 0.35)';
+                ctx.fillRect(0, ry + rowH - 5, W, 5);
+
+                for (let tx = -tileW; tx < W + tileW; tx += tileW) {
+                    const offset = (r % 2) * (tileW * 0.5);
+                    ctx.strokeStyle = 'rgba(254, 215, 170, 0.14)';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.arc(tx + offset, ry + rowH * 0.5, tileW * 0.48, Math.PI, 0);
+                    ctx.stroke();
+                }
+            }
+
+            // Çatı parapet / duvar kenarı
+            ctx.fillStyle = '#57534e';
+            ctx.fillRect(0, roofTopY - 8, W, 12);
+            ctx.fillStyle = '#78716c';
+            ctx.fillRect(0, roofTopY - 8, W, 3);
+
+            // Rüzgarda sallanan çatı otları
+            roofWeeds.forEach(w => {
+                const sway = Math.sin(time * 2.5 + w.phase) * 4;
+                ctx.strokeStyle = '#65a30d';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(w.x, w.y);
+                ctx.quadraticCurveTo(w.x + sway * 0.5, w.y - w.height * 0.5, w.x + sway, w.y - w.height);
+                ctx.stroke();
+            });
+
+            // Sol tarafta geleneksel Güneş Enerjisi Deposu
+            drawSolarHeater(W * 0.11, roofTopY + 12);
+
+            // Sağ tarafta Ahşap Güvercin Kümesi ("Kuşhane")
+            drawPigeonLoft(W * 0.77, roofTopY + 18);
+
+            // Suluk (Toprak / Plastik Suluk)
+            const bowlX = W * 0.67;
+            const bowlY = roofTopY + 34;
+            ctx.fillStyle = '#b45309';
+            ctx.beginPath();
+            ctx.ellipse(bowlX, bowlY, 18, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#38bdf8';
+            ctx.beginPath();
+            ctx.ellipse(bowlX, bowlY - 1, 14, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Damdaki yem taneleri
+            ctx.fillStyle = '#facc15';
+            grains.forEach(g => {
+                ctx.beginPath();
+                ctx.ellipse(g.x, g.y, 2.5, 1.3, g.angle, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function drawSolarHeater(x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+            // Demir ayaklar
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(-45, 0); ctx.lineTo(-35, -38);
+            ctx.moveTo(45, 0); ctx.lineTo(35, -38);
+            ctx.stroke();
+
+            // Eğik güneş kolektör paneli
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.moveTo(-50, -5);
+            ctx.lineTo(-22, -42);
+            ctx.lineTo(42, -42);
+            ctx.lineTo(14, -5);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Krom sıcak su silindir deposu
+            const tankGrad = ctx.createLinearGradient(0, -64, 0, -40);
+            tankGrad.addColorStop(0, '#f8fafc');
+            tankGrad.addColorStop(0.5, '#94a3b8');
+            tankGrad.addColorStop(1, '#475569');
+            ctx.fillStyle = tankGrad;
+            ctx.beginPath();
+            ctx.roundRect(-28, -64, 74, 24, 12);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawPigeonLoft(x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            const lw = Math.min(185, W * 0.22);
+            const lh = 108;
+
+            // Kümes gölgesi
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.beginPath();
+            ctx.ellipse(0, 4, lw * 0.62, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Ahşap gövde
+            ctx.fillStyle = '#451a03';
+            ctx.fillRect(-lw * 0.5, -lh, lw, lh);
+
+            // Ahşap tahta çizgileri
+            ctx.strokeStyle = '#270e02';
+            ctx.lineWidth = 2;
+            for (let i = 1; i < 6; i++) {
+                const py = -lh + (i / 6) * lh;
+                ctx.beginPath();
+                ctx.moveTo(-lw * 0.5, py);
+                ctx.lineTo(lw * 0.5, py);
+                ctx.stroke();
+            }
+
+            // Kümes giriş kapısı ve konma tüneği
+            ctx.fillStyle = '#090d16';
+            ctx.beginPath();
+            ctx.roundRect(-lw * 0.28, -lh * 0.62, lw * 0.34, lh * 0.62, [14, 14, 0, 0]);
+            ctx.fill();
+
+            // Tel örgü pencere
+            const winX = lw * 0.14;
+            const winY = -lh * 0.72;
+            const winW = lw * 0.26;
+            const winH = lh * 0.36;
+            ctx.fillStyle = '#1c1917';
+            ctx.fillRect(winX, winY, winW, winH);
+            ctx.strokeStyle = '#a8a29e';
+            ctx.lineWidth = 1;
+            for (let gx = winX; gx <= winX + winW; gx += 6) {
+                ctx.beginPath(); ctx.moveTo(gx, winY); ctx.lineTo(gx, winY + winH); ctx.stroke();
+            }
+            for (let gy = winY; gy <= winY + winH; gy += 6) {
+                ctx.beginPath(); ctx.moveTo(winX, gy); ctx.lineTo(winX + winW, gy); ctx.stroke();
+            }
+
+            // Kümes çatısı (Oluklu sac / ahşap saçak)
+            ctx.fillStyle = '#78350f';
+            ctx.beginPath();
+            ctx.moveTo(-lw * 0.58, -lh + 4);
+            ctx.lineTo(lw * 0.58, -lh - 12);
+            ctx.lineTo(lw * 0.58, -lh - 4);
+            ctx.lineTo(-lw * 0.58, -lh + 12);
+            ctx.closePath();
+            ctx.fill();
+
+            // Konma tüneği (Sırık)
+            ctx.strokeStyle = '#d97706';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(-lw * 0.42, -lh * 0.32);
+            ctx.lineTo(lw * 0.05, -lh * 0.32);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // ==========================================
+        // 7. ANA OYUN DÖNGÜSÜ (60 FPS)
+        // ==========================================
+        let lastTime = performance.now();
+
+        function gameLoop(now) {
+            const dt = Math.min((now - lastTime) / 1000, 0.05);
+            lastTime = now;
+
+            ctx.clearRect(0, 0, W, H);
+
+            // Arka plan & Adana damı
+            drawBackground(now / 1000);
+
+            // Güvercinleri derinliğe göre sırala ve çiz
+            const sortedPigeons = [...pigeons].sort((a, b) => a.y - b.y);
+            sortedPigeons.forEach(p => {
+                p.update(dt);
+                p.draw(ctx);
+            });
+
+            // Partiküller ve şok dalgaları
+            updateAndDrawParticles(dt);
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ==========================================
+        // 8. HEDİYE TETİKLEME & TİKFINITY ENTEGRASYONU
+        // ==========================================
+        const stats = { common: 0, rare: 0, legendary: 0 };
+        const sampleDonors = ['@adanali_mehmet', '@kuscu_kemal01', '@mardinli_serhat', '@taklaci_ustasi', '@seyhan_bey', '@cukurova_krali'];
+
+        function triggerGift(count = 1, senderName = 'Canlı Yayın İzleyicisi', giftName = 'Hediye') {
+            initAudio();
+
+            let breedKey = 'common';
+            if (count >= 10) {
+                breedKey = 'legendary';
+                stats.legendary++;
+                document.getElementById('stat-legendary').innerText = stats.legendary;
+                playCelebration(10);
+            } else if (count >= 5) {
+                breedKey = 'rare';
+                stats.rare++;
+                document.getElementById('stat-rare').innerText = stats.rare;
+                playCelebration(5);
+            } else {
+                breedKey = 'common';
+                stats.common++;
+                document.getElementById('stat-common').innerText = stats.common;
+            }
+
+            // Müsait bir güvercini uçur (öncelik ana güvercinde)
+            let chosen = pigeons.find(p => p.state === 'idle') || pigeons[0];
+            chosen.triggerPerformance(breedKey, senderName);
+
+            // Eğer 10x efsane hediye geldiyse diğer kuşlar da eşlik etsin
+            if (breedKey === 'legendary') {
+                pigeons.forEach((p, idx) => {
+                    if (p !== chosen && p.state === 'idle') {
+                        setTimeout(() => p.triggerPerformance(idx === 1 ? 'rare' : 'common', senderName), idx * 220);
+                    }
+                });
+            }
+
+            showNotificationBanner(count, senderName, giftName, BREEDS[breedKey]);
+        }
+
+        // Global erişim (OBS / TikTok Live Studio / dış scriptler için)
+        window.triggerGift = triggerGift;
+
+        function simulateGift(count) {
+            const randomUser = sampleDonors[Math.floor(Math.random() * sampleDonors.length)];
+            const giftLabel = count >= 10 ? 'Aslan / Şah' : (count >= 5 ? 'Nazar Boncuğu' : 'Gül');
+            triggerGift(count, randomUser, giftLabel);
+        }
+
+        function showNotificationBanner(count, sender, giftName, breed) {
+            const container = document.getElementById('banner-container');
+            container.innerHTML = '';
+
+            const isLegend = breed.id === 'legendary';
+            const isRare = breed.id === 'rare';
+            const badgeColor = isLegend ? 'bg-yellow-400 text-slate-950' : (isRare ? 'bg-amber-500 text-slate-950' : 'bg-sky-500 text-white');
+
+            const banner = document.createElement('div');
+            banner.className = `${isLegend ? 'glass-gold' : 'glass'} banner-animate rounded-2xl p-3.5 text-white flex items-center gap-3.5 relative left-1/2`;
+            banner.innerHTML = `
+                <div class="${badgeColor} font-black text-sm px-3 py-2 rounded-xl shrink-0 shadow">
+                    ${count}x
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-xs font-bold text-amber-300 truncate">${escapeHtml(sender)} • ${escapeHtml(giftName)}</div>
+                    <div class="text-sm font-black text-white truncate">${breed.name}</div>
+                    <div class="text-[11px] text-slate-300 truncate">${breed.somersaults} Takla ile Gökyüzüne Fişekledi!</div>
+                </div>
+            `;
+            container.appendChild(banner);
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.innerText = str;
+            return div.innerHTML;
+        }
+
+        // ==========================================
+        // 9. TIKFINITY WEBSOCKET & URL PARAMETRELERİ
+        // ==========================================
+        let ws = null;
+        let wsUrl = 'ws://localhost:21213';
+        let reconnectTimer = null;
+
+        function connectTikFinity() {
+            if (ws) {
+                try { ws.close(); } catch (e) {}
+            }
+            const dot = document.getElementById('ws-dot');
+            const status = document.getElementById('ws-status');
+
+            try {
+                ws = new WebSocket(wsUrl);
+
+                ws.onopen = () => {
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]';
+                    status.innerText = 'TikFinity Bağlı (Canlı)';
+                };
+
+                ws.onmessage = (event) => {
+                    try {
+                        const msg = JSON.parse(event.data);
+                        // TikFinity standart event yapısı: { event: 'gift', data: { ... } }
+                        const eventType = msg.event || msg.type;
+                        const payload = msg.data || msg;
+
+                        if (eventType === 'gift') {
+                            // Streak bitişini veya tekli hediyeleri yakala
+                            if (payload.giftType === 1 && !payload.repeatEnd) return;
+
+                            const repeatCount = Number(payload.repeatCount || payload.count || 1);
+                            const diamondCount = Number(payload.diamondCount || 1) * repeatCount;
+                            const sender = payload.nickname || payload.uniqueId || 'TikTok İzleyicisi';
+                            const giftName = payload.giftName || 'Hediye';
+
+                            // Hem adet (repeatCount) hem elmas değerine göre kademe belirle
+                            let tier = 1;
+                            if (repeatCount >= 10 || diamondCount >= 50) tier = 10;
+                            else if (repeatCount >= 5 || diamondCount >= 10) tier = 5;
+
+                            triggerGift(tier, sender, `${repeatCount}x ${giftName}`);
+                        }
+                    } catch (err) {}
+                };
+
+                ws.onclose = () => {
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse';
+                    status.innerText = 'TikFinity Bekleniyor...';
+                    clearTimeout(reconnectTimer);
+                    reconnectTimer = setTimeout(connectTikFinity, 4000);
+                };
+
+                ws.onerror = () => {
+                    ws.close();
+                };
+            } catch (e) {
+                dot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500';
+                status.innerText = 'Bağlantı Hatası';
+            }
+        }
+
+        // PostMessage desteği (iframe / overlay köprüleri için)
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type === 'tiktok_gift') {
+                triggerGift(e.data.count || 1, e.data.sender || 'İzleyici', e.data.giftName || 'Hediye');
+            }
+        });
+
+        // Yayıncı Modu (Test butonlarını gizleme)
+        let isStreamerMode = false;
+        function toggleStreamerMode() {
+            isStreamerMode = !isStreamerMode;
+            const testBtns = document.getElementById('test-buttons');
+            const toggleText = document.getElementById('toggle-ui-text');
+            if (isStreamerMode) {
+                testBtns.classList.add('hidden');
+                toggleText.innerText = 'Test Butonlarını Göster';
+            } else {
+                testBtns.classList.remove('hidden');
+                toggleText.innerText = 'Canlı Yayın Modu (Butonları Gizle)';
+            }
+        }
+
+        function openSettings() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        function closeSettings() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        function reconnectWS() {
+            wsUrl = document.getElementById('ws-url-input').value.trim() || 'ws://localhost:21213';
+            closeSettings();
+            connectTikFinity();
+        }
+
+        // Başlangıç kurulumu ve URL parametre kontrolü
+        window.onload = () => {
+            resizeCanvas();
+            connectTikFinity();
+            requestAnimationFrame(gameLoop);
+
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('clean') === '1') {
+                toggleStreamerMode();
+            }
+            const initialGift = parseInt(params.get('gift'), 10);
+            if (initialGift > 0) {
+                setTimeout(() => simulateGift(initialGift), 800);
+            }
+        };
+    </script>
+</body>
+</html>
